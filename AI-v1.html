@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#1A365D">
+
+<link rel="apple-touch-icon" href="icon-192x192.png">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registered with scope:', registration.scope);
+        })
+        .catch(err => {
+          console.error('ServiceWorker registration failed:', err);
+        });
+    });
+  }
+</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#c0c0c0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Raw answers for curious minds – powered by OpenRouter (free models)">
+  <link rel="manifest" href="data:application/manifest+json,{name:'StudyHub',short_name:'StudyHub',description:'Ask anything, learn everything',theme_color:'#c0c0c0',background_color:'#ffffff',display:'standalone',orientation:'portrait',scope:'/',start_url:'./',icons:[{src:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'0\' fill=\'%23c0c0c0\'/%3E%3Cpath d=\'M30 40 L70 40 M50 30 L50 70\' stroke=\'%23000080\' stroke-width=\'8\' stroke-linecap=\'square\'/%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'8\' fill=\'%23000080\'/%3E%3C/svg%3E',sizes:'512x512',type:'image/svg+xml'}]}">
+  <title>StudyHub · 90s style</title>
+  <style>
+    /* 90s retro style with bevels, monospace, and solid colors */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: #008080; /* teal desktop */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #000000;
+      line-height: 1.4;
+      font-size: 16px;
+      padding: 8px;
+    }
+    .app-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 12px 12px 20px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #c0c0c0;
+      border: 3px outset #ffffff;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      border-right-color: #808080;
+      border-bottom-color: #808080;
+      box-shadow: 4px 4px 0 #000000;
+    }
+    /* window title bar */
+    .brand {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      background: #000080;
+      color: white;
+      padding: 6px 8px;
+      margin: -12px -12px 12px -12px;
+      border-bottom: 2px solid #808080;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .badge {
+      background: #c0c0c0;
+      color: #000080;
+      padding: 2px 8px;
+      border: 2px inset #ffffff;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: #c0c0c0;
+      border: 2px inset #ffffff;
+      padding: 6px 10px;
+      width: fit-content;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #808080;
+    }
+    .dot { width: 12px; height: 12px; border: 2px inset #808080; background: #00aa00; }
+    .dot.inactive { background: #808080; }
+    .status-text { font-size: 0.9rem; font-weight: bold; color: #000000; }
+    .model-selector {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #c0c0c0;
+      padding: 8px;
+      border: 2px inset #ffffff;
+    }
+    .model-selector label {
+      font-weight: bold;
+      color: #000080;
+    }
+    select {
+      background: #ffffff;
+      border: 2px inset #808080;
+      padding: 4px 8px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #000000;
+      box-shadow: 2px 2px 0 #808080;
+    }
+    .chat-panel {
+      background: #c0c0c0;
+      border: 3px ridge #ffffff;
+      padding: 16px 14px;
+      margin-bottom: 20px;
+      box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #ffffff;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      background: #ffffff;
+      border: 2px inset #808080;
+      resize: vertical;
+      min-height: 120px;
+      font-family: 'Courier New', Courier, monospace;
+      color: #000000;
+      outline: none;
+      box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080;
+    }
+    textarea:focus { background: #ffffe0; }
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+    .btn-primary {
+      background: #c0c0c0;
+      color: #000000;
+      border: 3px outset #ffffff;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      border-right-color: #808080;
+      border-bottom-color: #808080;
+      padding: 8px 24px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: 'Courier New', Courier, monospace;
+      text-transform: uppercase;
+      box-shadow: 2px 2px 0 #000000;
+    }
+    .btn-primary:active {
+      border: 3px inset #808080;
+      box-shadow: inset 1px 1px 0 #000000;
+    }
+    .btn-primary:disabled { opacity: 0.6; pointer-events: none; }
+    .answer-container {
+      margin-top: 24px;
+      background: #ffffff;
+      border: 2px inset #808080;
+      padding: 14px;
+      box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080;
+    }
+    .answer-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: bold;
+      color: #000080;
+      margin-bottom: 8px;
+      border-bottom: 2px groove #808080;
+      padding-bottom: 4px;
+    }
+    .answer-content { 
+      white-space: pre-wrap; 
+      word-break: break-word; 
+      font-size: 1rem;
+      color: #000000;
+      background: #ffffff;
+    }
+    .footer-credit {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      border-top: 2px groove #808080;
+      padding-top: 16px;
+    }
+    .dev-line {
+      font-size: 0.8rem;
+      color: #000080;
+      background: #c0c0c0;
+      padding: 6px 16px;
+      border: 2px outset #ffffff;
+      font-weight: bold;
+    }
+    .donate-btn {
+      background: #c0c0c0;
+      border: 3px outset #ffffff;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      border-right-color: #808080;
+      border-bottom-color: #808080;
+      padding: 8px 24px;
+      font-size: 1rem;
+      color: #000080;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 2px 2px 0 #000000;
+    }
+    .donate-btn:active {
+      border: 3px inset #808080;
+      box-shadow: inset 1px 1px 0 #000000;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-card {
+      background: #c0c0c0;
+      max-width: 400px;
+      width: 100%;
+      border: 3px outset #ffffff;
+      padding: 20px 16px 20px;
+      text-align: center;
+      box-shadow: 8px 8px 0 #000000;
+    }
+    .modal-card h3 {
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      color: #000080;
+      text-transform: uppercase;
+      background: #000080;
+      color: white;
+      padding: 4px;
+      margin: -20px -16px 16px -16px;
+      border-bottom: 2px solid #808080;
+    }
+    .modal-card p { font-size: 0.9rem; color: #000000; margin-bottom: 16px; }
+    .api-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 2px inset #808080;
+      margin: 12px 0;
+      font-size: 0.9rem;
+      background: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      box-shadow: inset 1px 1px 0 #ffffff;
+    }
+    .upi-id {
+      background: #ffffff;
+      padding: 8px 12px;
+      border: 2px inset #808080;
+      font-family: 'Courier New', Courier, monospace;
+      margin: 16px 0;
+      font-weight: bold;
+    }
+    #qrCanvas { 
+      border: 3px inset #808080; 
+      background: white; 
+      padding: 4px;
+      image-rendering: pixelated;
+    }
+    .modal-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 16px 0 8px; }
+    .btn-outline {
+      background: #c0c0c0;
+      border: 2px outset #ffffff;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      border-right-color: #808080;
+      border-bottom-color: #808080;
+      padding: 6px 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 2px 2px 0 #000000;
+    }
+    .btn-outline:active {
+      border: 2px inset #808080;
+      box-shadow: inset 1px 1px 0 #000000;
+    }
+    .close-icon { 
+      margin-top: 16px; 
+      font-size: 0.9rem; 
+      color: #000080; 
+      cursor: pointer; 
+      text-decoration: underline;
+      font-weight: bold;
+    }
+    .hint-text { font-size: 0.8rem; color: #000000; margin-top: 8px; }
+    .error-hint { color: #800000; font-size: 0.85rem; margin-top: 8px; font-weight: bold; }
+    a { color: #0000ee; font-weight: bold; }
+    a:visited { color: #551a8b; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+  <div class="brand">
+    <h1>📁 StudyHub.exe</h1>
+    <span class="badge">raw · 90s</span>
+  </div>
+
+  <div class="status-chip" id="apiKeyStatusChip">
+    <span class="dot inactive" id="apiStatusDot"></span>
+    <span class="status-text" id="apiStatusText">OpenRouter · key needed</span>
+  </div>
+
+  <div class="model-selector">
+    <label for="modelSelect">🧠 MODEL:</label>
+    <select id="modelSelect">
+      <option value="openai/gpt-oss-120b:free" selected>GPT-OSS 120B (free)</option>
+      <option value="openrouter/free">OpenRouter Free (auto best)</option>
+      <option value="cognitivecomputations/dolphin-mistral-24b-venice-edition:free">Venice 24B (uncensored)</option>
+      <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (fast)</option>
+      <option value="mistralai/mistral-7b-instruct:free">Mistral 7B</option>
+      <option value="meta-llama/llama-3.2-3b-instruct:free">Llama 3.2 3B</option>
+    </select>
+  </div>
+
+  <div class="chat-panel">
+    <textarea id="questionInput" placeholder="> Ask anything … raw answers." rows="3"></textarea>
+    <div class="actions">
+      <button class="btn-primary" id="askBtn">▶ Execute</button>
+    </div>
+
+    <div class="answer-container">
+      <div class="answer-label">C:\> RESPONSE</div>
+      <div class="answer-content" id="answerDisplay">✨ Click the status chip to set your free OpenRouter API key.</div>
+      <div id="errorDetails" class="error-hint"></div>
+    </div>
+  </div>
+
+  <div class="footer-credit">
+    <div class="dev-line">⚡ developed by DeVGaJ · integrated with OpenRouter</div>
+    <button class="donate-btn" id="donateBtn">💰 DONATE</button>
+  </div>
+</div>
+
+<!-- API Key Setup Modal -->
+<div class="modal" id="apiKeyModal">
+  <div class="modal-card">
+    <h3>🔑 API KEY</h3>
+    <p>Get free key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a><br>All models listed are free.</p>
+    <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-or-v1-..." autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-outline" id="saveApiKeyBtn">💾 SAVE</button>
+      <button class="btn-outline" id="clearApiKeyBtn">🗑️ CLEAR</button>
+    </div>
+    <div class="close-icon" id="closeApiModal">[ CLOSE ]</div>
+  </div>
+</div>
+
+<!-- Donate Modal -->
+<div class="modal" id="donateModal">
+  <div class="modal-card">
+    <h3>📟 SUPPORT</h3>
+    <div class="upi-id" id="upiDisplay">mrjagdevsingh1981@okicici</div>
+    <div class="qr-wrap"><canvas id="qrCanvas" width="180" height="180"></canvas></div>
+    <div class="modal-actions">
+      <button class="btn-outline" id="openUpiAppBtn">📱 OPEN UPI</button>
+      <button class="btn-outline" id="copyUpiBtn">📋 COPY</button>
+    </div>
+    <div class="close-icon" id="closeDonateModal">[ CLOSE ]</div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    "use strict";
+
+    // PWA service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("data:application/javascript,self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request))})").catch(()=>{});
+    }
+
+    // DOM elements
+    const questionInput = document.getElementById('questionInput');
+    const askBtn = document.getElementById('askBtn');
+    const answerDisplay = document.getElementById('answerDisplay');
+    const errorDetails = document.getElementById('errorDetails');
+    const apiKeyModal = document.getElementById('apiKeyModal');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+    const closeApiModal = document.getElementById('closeApiModal');
+    const apiStatusChip = document.getElementById('apiKeyStatusChip');
+    const apiStatusDot = document.getElementById('apiStatusDot');
+    const apiStatusText = document.getElementById('apiStatusText');
+    const modelSelect = document.getElementById('modelSelect');
+    
+    const donateModal = document.getElementById('donateModal');
+    const closeDonateModal = document.getElementById('closeDonateModal');
+    const donateBtn = document.getElementById('donateBtn');
+    const openUpiAppBtn = document.getElementById('openUpiAppBtn');
+    const copyUpiBtn = document.getElementById('copyUpiBtn');
+    const qrCanvas = document.getElementById('qrCanvas');
+
+    // Constants
+    const UPI_ID = 'mrjagdevsingh1981@okicici';
+    const UPI_NAME = 'Jagdev Singh';
+    const upiUri = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(UPI_NAME)}&cu=INR`;
+    const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    const SITE_URL = window.location.origin || 'https://studyhub.local';
+    const SITE_NAME = 'StudyHub';
+    
+    // API Key storage
+    let apiKey = localStorage.getItem('openrouter_api_key') || '';
+
+    // QR code with pixelated style
+    function generateQR(text) {
+      const qr = qrcode(0, 'M');
+      qr.addData(text);
+      qr.make();
+      const size = 180;
+      const cell = size / qr.getModuleCount();
+      const ctx = qrCanvas.getContext('2d');
+      qrCanvas.width = size; qrCanvas.height = size;
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,size,size);
+      ctx.fillStyle = '#000';
+      for (let r=0; r<qr.getModuleCount(); r++) {
+        for (let c=0; c<qr.getModuleCount(); c++) {
+          if (qr.isDark(r,c)) ctx.fillRect(c*cell, r*cell, cell, cell);
+        }
+      }
+    }
+    generateQR(upiUri);
+
+    // Update UI based on key presence
+    function updateApiStatus() {
+      if (apiKey && apiKey.trim().length > 10) {
+        apiStatusDot.classList.remove('inactive');
+        apiStatusDot.style.background = '#00aa00';
+        apiStatusText.textContent = `OpenRouter · ${modelSelect.options[modelSelect.selectedIndex]?.text.split(' ')[0] || 'Model'} ready`;
+      } else {
+        apiStatusDot.classList.add('inactive');
+        apiStatusDot.style.background = '#808080';
+        apiStatusText.textContent = 'OpenRouter · API key needed';
+      }
+    }
+    updateApiStatus();
+
+    // Modal controls
+    function showApiModal() {
+      apiKeyInput.value = apiKey || '';
+      apiKeyModal.style.display = 'flex';
+    }
+    function hideApiModal() {
+      apiKeyModal.style.display = 'none';
+    }
+    apiStatusChip.addEventListener('click', showApiModal);
+    closeApiModal.addEventListener('click', hideApiModal);
+    apiKeyModal.addEventListener('click', (e) => { if(e.target===apiKeyModal) hideApiModal(); });
+    
+    saveApiKeyBtn.addEventListener('click', () => {
+      const newKey = apiKeyInput.value.trim();
+      if (newKey) {
+        apiKey = newKey;
+        localStorage.setItem('openrouter_api_key', apiKey);
+        updateApiStatus();
+        hideApiModal();
+        answerDisplay.textContent = '✨ API key saved! Ask anything.';
+      } else {
+        alert('Please enter a valid key');
+      }
+    });
+    clearApiKeyBtn.addEventListener('click', () => {
+      apiKey = '';
+      localStorage.removeItem('openrouter_api_key');
+      apiKeyInput.value = '';
+      updateApiStatus();
+      answerDisplay.textContent = '✨ API key cleared. Enter a new one to continue.';
+    });
+
+    // Donate modal
+    function showDonateModal() { donateModal.style.display = 'flex'; }
+    function hideDonateModal() { donateModal.style.display = 'none'; }
+    donateBtn.addEventListener('click', showDonateModal);
+    closeDonateModal.addEventListener('click', hideDonateModal);
+    donateModal.addEventListener('click', (e) => { if(e.target===donateModal) hideDonateModal(); });
+    openUpiAppBtn.addEventListener('click', ()=> window.location.href = upiUri);
+    copyUpiBtn.addEventListener('click', async ()=>{
+      try { await navigator.clipboard.writeText(UPI_ID); alert('✅ UPI copied'); }
+      catch { prompt('Copy:', UPI_ID); }
+    });
+
+    // Update status when model changes
+    modelSelect.addEventListener('change', updateApiStatus);
+
+    // OpenRouter API call
+    async function askOpenRouter(question) {
+      if (!apiKey) {
+        throw new Error('Please set your OpenRouter API key first (click the status chip)');
+      }
+      
+      const model = modelSelect.value;
+      
+      const response = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': SITE_URL,
+          'X-OpenRouter-Title': SITE_NAME
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant. Answer directly and honestly.' },
+            { role: 'user', content: question }
+          ],
+          temperature: 0.7,
+          max_tokens: 2048
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        if (response.status === 429) {
+          throw new Error(`Rate limit (429): The model is busy. Try another model or wait.`);
+        }
+        throw new Error(`API error (${response.status}): ${err.slice(0,100)}`);
+      }
+      const data = await response.json();
+      return data.choices[0].message.content;
+    }
+
+    // Ask button
+    askBtn.addEventListener('click', async () => {
+      const question = questionInput.value.trim();
+      if (!question) {
+        answerDisplay.textContent = '❓ Please enter a question.';
+        return;
+      }
+      if (!apiKey) {
+        answerDisplay.textContent = '🔑 Please set your OpenRouter API key first.';
+        showApiModal();
+        return;
+      }
+
+      askBtn.disabled = true;
+      const selectedModelName = modelSelect.options[modelSelect.selectedIndex]?.text || 'model';
+      answerDisplay.textContent = `🤔 Thinking (${selectedModelName}) ...`;
+      errorDetails.textContent = '';
+
+      try {
+        const answer = await askOpenRouter(question);
+        answerDisplay.textContent = answer;
+      } catch (error) {
+        console.error(error);
+        answerDisplay.textContent = `⚠️ ${error.message}`;
+        if (error.message.includes('429')) {
+          errorDetails.textContent = '💡 Try selecting a different model from the dropdown above.';
+        } else if (error.message.includes('401')) {
+          errorDetails.textContent = 'Invalid API key. Get a new one at openrouter.ai/keys';
+        }
+      } finally {
+        askBtn.disabled = false;
+      }
+    });
+
+    questionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        askBtn.click();
+      }
+    });
+
+    // Initial message
+    if (!apiKey) {
+      answerDisplay.textContent = '✨ Welcome! Click the status chip above to set your free OpenRouter API key.';
+    } else {
+      answerDisplay.textContent = '✨ Ready. Ask anything.';
+    }
+  })();
+</script>
+</body>
+</html>
