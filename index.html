@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Your Secret?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #1a1a2e;
+  }
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  }
+  h1 { font-size: 1.6rem; margin-bottom: 8px; }
+  .sub { color: #666; font-size: .9rem; margin-bottom: 24px; line-height: 1.5; }
+  label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 8px; margin-top: 18px; }
+  input[type=text], textarea, select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e0e0e8;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color .2s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  button {
+    width: 100%;
+    margin-top: 26px;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  button:hover:not(:disabled) { transform: translateY(-2px); }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  .notice {
+    margin-top: 22px;
+    padding: 14px;
+    background: #f4f5fb;
+    border-left: 3px solid #667eea;
+    border-radius: 6px;
+    font-size: .8rem;
+    color: #555;
+    line-height: 1.5;
+  }
+  .result {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+  }
+  .result h2 { font-size: 1.4rem; margin-bottom: 10px; }
+  .result p { color: #666; line-height: 1.6; }
+  .error { color: #c0392b; font-size: .85rem; margin-top: 12px; display: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <form id="secretForm">
+      <h1>🔮 What's Your Secret?</h1>
+      <p class="sub">Answer honestly. Your response goes directly to the site owner.</p>
+
+      <label for="name">What should we call you?</label>
+      <input type="text" id="name" name="name" required maxlength="60" placeholder="Your name or nickname">
+
+      <label for="secret">What's something you've never told anyone?</label>
+      <textarea id="secret" name="secret" required maxlength="500" placeholder="Type here... only you and the owner will know"></textarea>
+
+      <label for="mood">How do you feel right now?</label>
+      <select id="mood" name="mood">
+        <option value="Light">Light and free</option>
+        <option value="Heavy">Heavy and burdened</option>
+        <option value="Relieved">Relieved</option>
+        <option value="Nervous">Nervous</option>
+        <option value="Numb">Numb</option>
+      </select>
+
+      <button type="submit" id="submitBtn">Reveal &amp; Send</button>
+      <p class="error" id="errorMsg"></p>
+
+      <div class="notice">
+        <strong>Privacy notice:</strong> Your answers are sent to the site owner.
+        Please don't share passwords, ID numbers, financial details, or anything about a crime.
+      </div>
+    </form>
+
+    <div class="result" id="result">
+      <h2>✨ Thanks for sharing</h2>
+      <p>Your secret has been sent. Whatever you're carrying, you're not alone.</p>
+    </div>
+  </div>
+
+<script>
+const form = document.getElementById('secretForm');
+const btn = document.getElementById('submitBtn');
+const errorMsg = document.getElementById('errorMsg');
+const result = document.getElementById('result');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorMsg.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  const payload = {
+    name: form.name.value.trim(),
+    secret: form.secret.value.trim(),
+    mood: form.mood.value,
+    time: new Date().toLocaleString()
+  };
+
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error('Server responded ' + res.status);
+
+    form.style.display = 'none';
+    result.style.display = 'block';
+  } catch (err) {
+    errorMsg.textContent = 'Something went wrong. Please try again.';
+    errorMsg.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Reveal & Send';
+  }
+});
+</script>
+</body>
+</html>
